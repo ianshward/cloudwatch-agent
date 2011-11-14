@@ -63,6 +63,5 @@ if (!options.metricname) {
     }
     var data = {};
     data = Prepare(options);
-    console.log(data);
     Submit(options, data); 
 }
