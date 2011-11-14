@@ -56,7 +56,6 @@ if (!options.metricname) {
 } else {
     // Need all of these parameters to proceed
     if (!options.unit ||
-        !options.value ||
         !options.namespace ||
         !options.instanceid) {
         console.log("Must provide all of Unit, Value, Namespace, InstanceId, and MetricName, awskey, and awssecret as --config parameters")
