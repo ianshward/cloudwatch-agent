@@ -1,0 +1,18 @@
+var sh = require('sh');
+
+exports.definition = {
+    "name": "DiskRootPercentUsed",
+    "namespace": "System/Linux",
+    "unit": "Percent",
+    "interval": 60000,
+    "command": function(cb) {
+        var res = {};
+        sh('df')('grep -m1 "/dev/sda1"')('tr -s " "')('cut -d " " -f 5').result(function(value) {
+            res.value = value.substring(0, value.length -2);
+            sh('wget -q -O - http://169.254.169.254/latest/meta-data/instance-id').result(function(instance) {
+                res.instance = instance;
+                cb(res);
+            });
+        });
+    }
+}
