@@ -37,9 +37,10 @@ options.namespace = argv.namespace;
 
 // Use MetricName as flag to determine daemon versus single command.
 if (!options.metricname) {
-    list = fs.readdirSync('./checks');
+    var list = fs.readdirSync('./checks');
+    var active = options.activeChecks;
     _.each(list, function(name) {
-        if (name.substr(-6) == '.check') {
+        if (name.substr(-6) == '.check' && _.indexOf(active, name.split(/\.([^.]*)$/)[0]) > -1) {
             var def = require('./checks/' + name);
             var check = new Check(def);
             // Listener function
