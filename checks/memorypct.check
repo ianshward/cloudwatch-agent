@@ -1,4 +1,4 @@
-var sh = require('sh');
+var exec = require('child_process').exec;
 
 exports.definition = {
     "name": "MemoryPercentUsed",
@@ -7,10 +7,10 @@ exports.definition = {
     "interval": 60000,
     "command": function(cb) {
         var res = {};
-        sh('free -m')('grep "Mem"')('tr -s " "')('cut -d " " -f 2').result(function(total) {
-            sh('free -m')('grep "buffers/cache"')('tr -s " "')('cut -d " " -f 4').result(function(free) {
+        exec('free -m | grep "Mem" | tr -s " " | cut -d " " -f 2', function(err, total) {
+            exec('free -m | grep "buffers/cache" | tr -s " " | cut -d " " -f 4', function(err, free) {
                 res.value = 100 - ((free * 100) / total);
-                sh('wget -q -O - http://169.254.169.254/latest/meta-data/instance-id').result(function(instance) {
+                exec('wget -q -O - http://169.254.169.254/latest/meta-data/instance-id', function(err, instance) {
                     res.instance = instance;
                     cb(res);
                 });

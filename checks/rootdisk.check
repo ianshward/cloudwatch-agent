@@ -1,4 +1,4 @@
-var sh = require('sh');
+var exec = require('child_process').exec;
 
 exports.definition = {
     "name": "DiskRootPercentUsed",
@@ -7,9 +7,9 @@ exports.definition = {
     "interval": 60000,
     "command": function(cb) {
         var res = {};
-        sh('df')('grep -m1 "/dev/xvda1"')('tr -s " "')('cut -d " " -f 5').result(function(value) {
+        exec('df | grep -m1 "/dev/xvda1" | tr -s " " | cut -d " " -f 5', function(err, value) {
             res.value = value.substring(0, value.length -2);
-            sh('wget -q -O - http://169.254.169.254/latest/meta-data/instance-id').result(function(instance) {
+            exec('wget -q -O - http://169.254.169.254/latest/meta-data/instance-id', function(err, instance) {
                 res.instance = instance;
                 cb(res);
             });

@@ -11,9 +11,8 @@
     "node": "0.4.x || 0.6.x"
   },
   "dependencies": {
-    "aws-lib": "git://github.com/ianshward/aws-lib.git",
+    "aws-lib": "0.0.5",
     "underscore": "1.1.x",
-    "sh": "0.0.x",
     "optimist": "0.2.x"
   },
   "devDependencies": {}
