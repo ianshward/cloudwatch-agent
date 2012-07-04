@@ -1,8 +1,5 @@
 var fs = require('fs');
 var _ = require('underscore');
-var Check = require('./lib/Check.js').Check;
-var Prepare = require('./lib/Check.js').Prepare;
-var Submit = require('./lib/Check.js').Submit;
 var optimist = require('optimist')
 .usage('Send metrics to cloudwatch.\n' +
        'Usage: $0 [options]\n\n' +
@@ -24,7 +21,7 @@ var optimist = require('optimist')
 .alias('instanceid', 'i')
 .alias('namespace', 'n')
 .alias('daemon', 'd')
-.default('daemon', true);
+.default('daemon', false);
 var argv = optimist.argv;
 var options = {};
 // Setup configuration options
@@ -49,33 +46,12 @@ if (!options.awskey ||
     process.exit(1);
 }
 
-if (!options.daemon) {
-    var list = fs.readdirSync('./checks');
-    var active = options.activeChecks;
-    _.each(list, function(name) {
-        if (name.substr(-6) == '.check' && _.indexOf(active, name.split(/\.([^.]*)$/)[0]) > -1) {
-            var def = require('./checks/' + name);
-            var check = new Check(def);
-            // Listener function
-            check.on('metric', function() {
-                var output = check.command(function(res) {
-                    // Submit to CloudWatch
-                    check.submit(options, res);
-                });
-            });
-            // Kick it off.
-            check.run();
-        }
-    });
-} else {
-    // Need all of these parameters to proceed
-    if (!options.unit ||
-        !options.namespace ||
-        !options.instanceid) {
-        console.log("Must provide all of Unit, Value, Namespace, InstanceId, and MetricName, awskey, and awssecret as --config parameters")
-        process.exit(1);
+var Check = require('./lib/Check.js')(options);
+
+var active = options.activeChecks;
+_(fs.readdirSync('./checks')).each(function(name) {
+    if (name.substr(-6) == '.check' && _.indexOf(active, name.split(/\.([^.]*)$/)[0]) > -1) {
+        var def = require('./checks/' + name);
+        var check = new Check(def);
     }
-    var data = {};
-    data = Prepare(options);
-    Submit(options, data); 
-}
+});
