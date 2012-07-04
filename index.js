@@ -3,24 +3,45 @@ var _ = require('underscore');
 var Check = require('./lib/Check.js').Check;
 var Prepare = require('./lib/Check.js').Prepare;
 var Submit = require('./lib/Check.js').Submit;
-
-var argv = require('optimist').argv;
-
-if (!argv.config) {
-    console.log("Must provide --config argument which points to json settings file, such as --config settings.json");
-    process.exit(1);
-}
-
+var optimist = require('optimist')
+.usage('Send metrics to cloudwatch.\n' +
+       'Usage: $0 [options]\n\n' +
+       'Required options:\n' +
+       '  awskey: your AWS key\n' +
+       '  awssecret: your AWS secret\n' +
+       '  (m)etricname: of CloudWatch metric\n' +
+       '  (u)nit: of measurement such as count, percent, bytes, bits, etc.\n' +
+       '  (v)alue: of metric to submit\n' +
+       '  (i)nstanceid: to which the metric value belongs\n' +
+       '  (n)amespace: of metric\n' +
+       '  (d)aemon: whether to report metric and exit or daemonize\n' +
+       'See CloudWatch API docs for more detail at:\n' +
+       '  http://docs.amazonwebservices.com/AmazonCloudWatch/latest/APIReference/')
+.alias('region', 'r')
+.alias('metric', 'm')
+.alias('unit', 'u')
+.alias('value', 'v')
+.alias('instanceid', 'i')
+.alias('namespace', 'n')
+.alias('daemon', 'd')
+.default('daemon', true);
+var argv = optimist.argv;
 var options = {};
-try {
-    var config = JSON.parse(fs.readFileSync(argv.config, 'utf8'));
-    for (var key in config) {
-        options[key] = config[key];
+// Setup configuration options
+if (argv.config) {
+    try {
+        _(JSON.parse(fs.readFileSync(argv.config, 'utf8'))).each(function(v, k) {
+            options[k] = v;
+        });
+    } catch(e) {
+        console.warn('Invalid JSON config file: ' + argv.config);
+       throw e;
     }
-} catch(e) {
-   console.warn('Invalid JSON config file: ' + options.config);
-   throw e;
 }
+// Allow options command-line overrides
+_.each(argv, function(v, k) {
+    options[k] = argv[k] || options[k];
+});
 
 if (!options.awskey ||
     !options.awssecret) {
@@ -28,15 +49,7 @@ if (!options.awskey ||
     process.exit(1);
 }
 
-// Parse any other arguments
-options.metricname = argv.metricname;
-options.unit = argv.unit;
-options.value = argv.value;
-options.instanceid = argv.instanceid;
-options.namespace = argv.namespace;
-
-// Use MetricName as flag to determine daemon versus single command.
-if (!options.metricname) {
+if (!options.daemon) {
     var list = fs.readdirSync('./checks');
     var active = options.activeChecks;
     _.each(list, function(name) {
