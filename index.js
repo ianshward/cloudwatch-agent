@@ -6,6 +6,7 @@ var optimist = require('optimist')
        'Required options:\n' +
        '  awskey: your AWS key\n' +
        '  awssecret: your AWS secret\n' +
+       '  (r)egion: AWS region within which to put the metric\n' +
        '  (m)etricname: of CloudWatch metric\n' +
        '  (u)nit: of measurement such as count, percent, bytes, bits, etc.\n' +
        '  (v)alue: of metric to submit\n' +
@@ -21,7 +22,8 @@ var optimist = require('optimist')
 .alias('instanceid', 'i')
 .alias('namespace', 'n')
 .alias('daemon', 'd')
-.default('daemon', false);
+.default('daemon', false)
+.default('region', 'us-east-1');
 var argv = optimist.argv;
 var options = {};
 // Setup configuration options
