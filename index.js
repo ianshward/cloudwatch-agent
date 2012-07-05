@@ -15,7 +15,7 @@ var optimist = require('optimist')
        'See CloudWatch API docs for more detail at:\n' +
        '  http://docs.amazonwebservices.com/AmazonCloudWatch/latest/APIReference/')
 .alias('region', 'r')
-.alias('metric', 'm')
+.alias('metricname', 'm')
 .alias('unit', 'u')
 .alias('value', 'v')
 .alias('instanceid', 'i')
@@ -49,9 +49,18 @@ if (!options.awskey ||
 var Check = require('./lib/Check.js')(options);
 
 var active = options.activeChecks;
-_(fs.readdirSync('./checks')).each(function(name) {
-    if (name.substr(-6) == '.check' && _.indexOf(active, name.split(/\.([^.]*)$/)[0]) > -1) {
-        var def = require('./checks/' + name);
-        var check = new Check(def);
-    }
-});
+if (options.daemon) {
+    _(fs.readdirSync('./checks')).each(function(name) {
+        if (name.substr(-6) == '.check' && _.indexOf(active, name.split(/\.([^.]*)$/)[0]) > -1) {
+            var check = new Check(require('./checks/' + name).definition);
+        }
+    });
+} else {
+    var check = new Check({
+        metricname: options.m,
+        namespace: options.n,
+        unit: options.u,
+        value: options.v,
+        instanceid: options.i
+    });
+}
