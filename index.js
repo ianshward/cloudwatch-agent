@@ -39,7 +39,7 @@ if (argv.config) {
 }
 // Allow options command-line overrides
 _.each(argv, function(v, k) {
-    options[k] = argv[k] || options[k];
+    options[k] = argv[k];
 });
 
 if (!options.awskey ||
